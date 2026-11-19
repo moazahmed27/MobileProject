@@ -1,0 +1,120 @@
+\documentclass[sigconf,nonacm]{acmart}
+\settopmatter{printacmref=false}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\pagestyle{plain}
+
+\begin{document}
+
+\title{Expense Tracker: A Personal Spending Manager Built with Jetpack Compose and XML Views}
+
+\author{Saad}
+\affiliation{\institution{Faculty of Computers and Information Sciences, Ain Shams University}\city{Cairo}\country{Egypt}}
+\email{saad@example.com}
+
+\author{Youssef}
+\affiliation{\institution{Faculty of Computers and Information Sciences, Ain Shams University}\city{Cairo}\country{Egypt}}
+\email{youssef@example.com}
+
+\author{Ashraf}
+\affiliation{\institution{Faculty of Computers and Information Sciences, Ain Shams University}\city{Cairo}\country{Egypt}}
+\email{ashraf@example.com}
+
+\author{Moaaz}
+\affiliation{\institution{Faculty of Computers and Information Sciences, Ain Shams University}\city{Cairo}\country{Egypt}}
+\email{moaaz@example.com}
+
+\author{Gamil}
+\affiliation{\institution{Faculty of Computers and Information Sciences, Ain Shams University}\city{Cairo}\country{Egypt}}
+\email{gamil@example.com}
+
+\author{Shalaby}
+\affiliation{\institution{Faculty of Computers and Information Sciences, Ain Shams University}\city{Cairo}\country{Egypt}}
+\email{shalaby@example.com}
+
+\begin{abstract}
+Many students and young professionals lose track of where their money goes because they
+record spending late, or not at all. This paper presents \emph{Expense Tracker}, a lightweight
+native Android application that lets users record, categorize, edit, share, and delete daily
+expenses and compare their total spending against a monthly budget. The application is
+written in Kotlin and combines two Android UI toolkits: the main expense list and the entry
+dialog are built with Jetpack Compose, while the details screen and the budget banner are built
+with traditional XML layouts. Data is stored locally with the Room library so the app works
+offline, and navigation between screens relies on explicit and implicit Intents. We describe the
+problem, the architecture, the implementation, and the lessons learned.
+\end{abstract}
+
+\keywords{Android, Jetpack Compose, XML layouts, Room, Kotlin, Personal finance}
+
+\maketitle
+
+\section{Introduction}
+Personal finance habits start with awareness. Small daily purchases such as food, transport, and
+study materials add up quickly, yet most budgeting applications are complex, require accounts,
+or need a constant Internet connection. Our goal was a small, fast, offline-first application
+focused on one job: making it effortless to log an expense and immediately see how it affects the
+monthly budget. The app was developed for the Mobile Computing course (FNI-421) to practice
+modern Android development.
+
+\section{Problem Statement and Objectives}
+Users need a quick way to record expenses, classify them, and see their total spending. The
+objectives are: (1) full create, read, update, and delete (CRUD) operations on expenses;
+(2) persistent on-device storage; (3) a clean and responsive interface; (4) interoperability
+between Jetpack Compose and XML views; and (5) clean Kotlin code that favors immutable values,
+lambdas, and data classes.
+
+\section{System Design}
+\subsection{Architecture}
+The app follows a modular MVVM structure separated into \texttt{data/} and \texttt{ui/} packages.
+The \texttt{Expense} entity holds a title, amount, category, optional note, and timestamp, while
+\texttt{Categories} defines the supported categories and monthly budget. \texttt{ExpenseDao}
+exposes suspend functions for insert, update, and delete, and a Kotlin \texttt{Flow} that emits
+the list sorted by date whenever the table changes. \texttt{ExpenseRepository} abstracts database
+access, and \texttt{ExpenseViewModel} converts this flow into a \texttt{StateFlow} observed by
+the interface in a lifecycle-aware way, so the screen always reflects the database.
+
+\subsection{User Interface}
+The home screen (\texttt{ExpenseScreen}) uses Jetpack Compose: a Material 3 scaffold, a scrolling
+list of \texttt{ExpenseCard} items, a floating action button, and \texttt{AddExpenseDialog} with
+input validation and a reusable \texttt{CategoryChipRow}. At the top, a budget banner defined in
+XML (\texttt{view\_banner.xml}) is embedded into the Compose hierarchy through \texttt{AndroidView}
+inside \texttt{SpendingBanner}; it shows the total spent and a progress bar against the monthly
+budget. Selecting an expense opens \texttt{ExpenseDetailActivity}, whose interface is entirely
+XML (\texttt{activity\_expense\_detail.xml}) and uses Material text fields, a category spinner,
+and buttons.
+
+\subsection{Navigation with Intents}
+The list opens the details screen with an explicit Intent that carries the expense identifier.
+The ``Share expense'' button sends a plain-text summary through an implicit \texttt{ACTION\_SEND}
+Intent, so it can be shared with any installed messaging application.
+
+\section{Persistence}
+Room provides compile-time-verified SQL and an abstraction over SQLite. The database is a
+singleton, and all queries run off the main thread using coroutines to keep the interface
+responsive. Both UI toolkits operate on the same data, so a change made in the XML screen is
+reflected immediately in the Compose list.
+
+\section{Implementation Notes}
+The code is split into small single-responsibility files across \texttt{data/},
+\texttt{ui/screens/}, \texttt{ui/components/}, and \texttt{ui/detail/}. Immutable \texttt{val}
+declarations are preferred, \texttt{var} is used only for local UI state, and lambdas are passed
+down the composable tree (state hoisting). Amounts are validated as positive decimal numbers
+before they are saved, and an empty-state message guides first-time users.
+
+\section{Challenges and Lessons Learned}
+Mixing Compose and XML required a shared Material 3 theme so colors and typography stay
+consistent. Embedding a View in Compose clarified the difference between the \texttt{factory}
+block, which inflates once, and the \texttt{update} block, which reruns on every state change.
+Dividing work by layer across six team members (database, MVVM/navigation, Compose list, Compose
+form dialog, XML-in-Compose banner + docs, and full XML details screen) allowed everyone to
+contribute through separate Git branches and pull requests.
+
+\section{Conclusion and Future Work}
+Expense Tracker shows that Compose and XML can coexist in a single coherent application and that
+Room makes local persistence simple. Future work includes charts per category, date filters,
+exporting to CSV, and optional cloud backup.
+
+\begin{acks}
+We thank Dr.\ Soha Nabil Hussein for guidance throughout the Mobile Computing course.
+\end{acks}
+
+\end{document}
