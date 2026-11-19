@@ -11,5 +11,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- XML-based screen -->
+        <activity
+            android:name=".ui.detail.ExpenseDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
     </application>
 </manifest>
